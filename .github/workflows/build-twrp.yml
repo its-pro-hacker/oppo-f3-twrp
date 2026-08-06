@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
     
     steps:
     - name: Checkout code
@@ -16,8 +16,8 @@ jobs:
       
     - name: Setup Ubuntu
       run: |
-        sudo apt-get update || true
-        sudo apt-get install -y git gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig python3 libssl-dev ccache || true
+        sudo apt-get update -qq || true
+        sudo apt-get install -y -qq git gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig python3 libssl-dev ccache lzop imagemagick bc || true
         
     - name: Install repo
       run: |
@@ -31,12 +31,27 @@ jobs:
         mkdir -p ~/android/twrp
         cd ~/android/twrp
         repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-7.1
-        repo sync -c --force-sync --no-tags -j4 || repo sync -c --force-sync --no-tags -j2 || repo sync -c --force-sync --no-tags
+        repo sync -c --force-sync --no-tags -j$(nproc) || repo sync -c --force-sync --no-tags -j2 || repo sync -c --force-sync --no-tags
         
     - name: Clone Device Tree
       run: |
         cd ~/android/twrp
-        git clone https://github.com/yoda24/device-tree-cph1609_android_7.1.1_for_twrp_omni_7.1.git device/oppo/CPH1609
+        git clone https://github.com/yoda24/device-tree-cph1609_android_7.1.1_for_twrp_omni_7.1.git temp_device_tree
+        mkdir -p device/oppo/CPH1609
+        cp -r temp_device_tree/device/oppo/CPH1609/* device/oppo/CPH1609/
+        rm -rf temp_device_tree
+        echo "=== Device tree files ==="
+        ls -la device/oppo/CPH1609/
+        
+    - name: Check Device Config
+      run: |
+        cd ~/android/twrp
+        echo "=== Checking AndroidProducts.mk ==="
+        cat device/oppo/CPH1609/AndroidProducts.mk
+        echo ""
+        echo "=== Available lunch targets ==="
+        source build/envsetup.sh 2>/dev/null || true
+        grep -r "omni_CPH1609" device/oppo/CPH1609/ || echo "No omni_CPH1609 found"
         
     - name: Fix SELinux
       run: |
@@ -51,9 +66,10 @@ jobs:
         export CCACHE_DIR=~/.ccache
         source build/envsetup.sh
         lunch omni_CPH1609-eng
-        make recoveryimage -j4 2>&1 | tee build.log || make recoveryimage -j2 2>&1 | tee build.log || make recoveryimage 2>&1 | tee build.log
+        make recoveryimage -j$(nproc) 2>&1 | tee build.log || make recoveryimage -j2 2>&1 | tee build.log || make recoveryimage 2>&1 | tee build.log
         
     - name: Check Build Result
+      if: always()
       run: |
         cd ~/android/twrp
         if [ -f "out/target/product/CPH1609/recovery.img" ]; then
@@ -63,18 +79,23 @@ jobs:
           cp out/target/product/CPH1609/recovery.img ${{ github.workspace }}/output/twrp_CPH1609.img
         else
           echo "❌ Build Failed!"
-          tail -100 build.log
+          echo "=== Last 200 lines of build.log ==="
+          tail -200 build.log || echo "No build.log found"
+          echo ""
+          echo "=== Checking out directory ==="
+          ls -la out/target/product/ 2>/dev/null || echo "No out/target/product directory"
           exit 1
         fi
         
     - name: Upload Artifact
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: twrp-CPH1609
         path: output/twrp_CPH1609.img
         
     - name: Create Release
-      if: github.ref == 'refs/heads/main'
+      if: success() && github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: twrp-build-${{ github.run_number }}
