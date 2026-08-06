@@ -30,12 +30,22 @@ jobs:
         fi
         echo "recovery.img is valid ($SIZE bytes)"
 
+    - name: Upload Recovery Image
+      uses: actions/upload-artifact@v4
+      with:
+        name: twrp-recovery-CPH1609
+        path: |
+          recovery.img
+          boot.img
+
     - name: Create Release
       if: success() && github.ref == 'refs/heads/main'
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: twrp-build-${{ github.run_number }}
+        tag_name: twrp-${{ github.run_number }}
         name: TWRP for OPPO F3 (CPH1609)
+        draft: false
+        prerelease: false
         body: |
           ## TWRP Recovery for OPPO F3
           
@@ -67,7 +77,7 @@ jobs:
           1. Flash recovery.img using fastboot or MTKClient
           2. Also flash boot.img to prevent /data re-encryption
           3. Boot to TWRP: Power off, hold Vol Up + Power
-          4. Go to **Wipe** → **Format Data** → type `yes` (erases internal storage but fixes /data mount)
+          4. Go to **Wipe** -> **Format Data** -> type `yes` (erases internal storage but fixes /data mount)
           
           ### Features
           - Touch working
