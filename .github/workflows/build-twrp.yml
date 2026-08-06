@@ -16,8 +16,8 @@ jobs:
       
     - name: Setup Ubuntu
       run: |
-        sudo apt-get update
-        sudo apt-get install -y git gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig python3 python3-pip libssl-dev ccache
+        sudo apt-get update || true
+        sudo apt-get install -y git gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig python3 libssl-dev ccache || true
         
     - name: Install repo
       run: |
@@ -28,9 +28,10 @@ jobs:
         
     - name: Download TWRP Source
       run: |
-        mkdir -p ~/android/twrp && cd ~/android/twrp
+        mkdir -p ~/android/twrp
+        cd ~/android/twrp
         repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-7.1
-        repo sync -c --force-sync --no-tags -j$(nproc)
+        repo sync -c --force-sync --no-tags -j4 || repo sync -c --force-sync --no-tags -j2 || repo sync -c --force-sync --no-tags
         
     - name: Clone Device Tree
       run: |
@@ -50,7 +51,7 @@ jobs:
         export CCACHE_DIR=~/.ccache
         source build/envsetup.sh
         lunch omni_CPH1609-eng
-        make recoveryimage -j$(nproc) 2>&1 | tee build.log
+        make recoveryimage -j4 2>&1 | tee build.log || make recoveryimage -j2 2>&1 | tee build.log || make recoveryimage 2>&1 | tee build.log
         
     - name: Check Build Result
       run: |
