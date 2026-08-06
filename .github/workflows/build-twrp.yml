@@ -87,35 +87,30 @@ jobs:
         
         java -version 2>&1
         echo "=== Sourcing envsetup.sh ==="
-        source build/envsetup.sh 2>&1
+        source build/envsetup.sh
         echo "=== lunch ==="
-        lunch omni_CPH1609-eng 2>&1
+        lunch omni_CPH1609-eng
         echo "=== check mka ==="
-        type mka 2>&1
-        echo "=== check make ==="
-        which make 2>&1
+        type mka 2>&1 || echo "mka not found"
         echo "=== starting build ==="
-        mka recoveryimage -j$(nproc) 2>&1 > build_output.txt; echo "mka exit: $?"
-        if [ ! -s build_output.txt ]; then
-          echo "mka produced no output, trying make..."
-          make recoveryimage -j$(nproc) 2>&1 > build_output.txt; echo "make exit: $?"
-        fi
+        mka recoveryimage -j$(nproc) &> /home/runner/android/twrp/build_output.txt
+        echo "mka exit: $?"
         echo "=== Build output (last 500 lines) ==="
-        tail -500 build_output.txt 2>/dev/null || echo "No build output"
-        cp build_output.txt build.log 2>/dev/null || true
+        tail -500 /home/runner/android/twrp/build_output.txt 2>/dev/null || echo "No build output"
+        cp /home/runner/android/twrp/build_output.txt ${{ github.workspace }}/build.log 2>/dev/null || true
         
     - name: Upload Build Log
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: build-log
-        path: /home/runner/android/twrp/build.log
+        path: ${{ github.workspace }}/build.log
         
     - name: Show Build Errors
       if: always()
       run: |
         echo "=== Last 500 lines of build.log ==="
-        tail -500 ~/android/twrp/build.log 2>/dev/null || echo "No build.log found"
+        tail -500 /home/runner/android/twrp/build_output.txt 2>/dev/null || echo "No build.log found"
         echo ""
         echo "=== out directory ==="
         ls -la ~/android/twrp/out/target/product/ 2>/dev/null || echo "No out/target/product"
