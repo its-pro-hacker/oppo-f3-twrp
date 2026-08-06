@@ -1,0 +1,6 @@
+# ueventd.mt6750.rc - OPPO F3 (CPH1609)
+# MediaTek MT6750 - Android 6.0.1 Marshmallow
+
+/dev/block/platform/mtk-msdc.0/by-name/* 0660 root root
+/dev/block/by-name/* 0660 root root
+/dev/block/mmcblk0* 0660 root root

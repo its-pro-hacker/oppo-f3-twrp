@@ -1,0 +1,11 @@
+# init.mt6750.rc - OPPO F3 (CPH1609)
+# MediaTek MT6750 - Android 6.0.1 Marshmallow
+
+on early-init
+    mount rootfs rootfs / ro remount
+    mount tmpfs tmpfs /dev
+    mkdir /dev/block 0755 root root
+    mkdir /dev/block/platform 0755 root root
+    mkdir /dev/block/platform/mtk-msdc.0 0755 root root
+    mkdir /dev/block/platform/mtk-msdc.0/by-name 0755 root root
+    symlink /dev/block/platform/mtk-msdc.0/by-name /dev/block/by-name

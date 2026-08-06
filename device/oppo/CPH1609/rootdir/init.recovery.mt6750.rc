@@ -1,0 +1,600 @@
+# init.recovery.mt6750.rc - OPPO F3 (CPH1609) TWRP Recovery
+# MediaTek MT6750 - Android 6.0.1 Marshmallow
+
+# TWRP Recovery initialization
+on early-init
+    # Set up the root directory
+    mount rootfs rootfs / ro remount
+    mount rootfs rootfs / rw remount
+
+    # Mount necessary file systems
+    mount tmpfs tmpfs /dev
+    mount devpts devpts /dev/pts
+    mount proc proc /proc
+    mount sysfs sysfs /sys
+
+    # Create device nodes
+    mkdir /dev/block 0755 root root
+    mkdir /dev/block/platform 0755 root root
+    mkdir /dev/block/platform/mtk-msdc.0 0755 root root
+    mkdir /dev/block/platform/mtk-msdc.0/by-name 0755 root root
+
+    # Symlink for block devices
+    symlink /dev/block/platform/mtk-msdc.0/by-name /dev/block/by-name
+
+    # Mount /data partition
+    mount ext4 /dev/block/platform/mtk-msdc.0/by-name/userdata /data nosuid,nodev,noatime,nodiratime,discard,errors=continue
+
+    # Mount /cache partition
+    mount ext4 /dev/block/platform/mtk-msdc.0/by-name/cache /cache nosuid,nodev,noatime,nodiratime,discard,errors=continue
+
+    # Mount /system partition
+    mount ext4 /dev/block/platform/mtk-msdc.0/by-name/system /system ro,nodev,nodiratime
+
+    # Mount /boot partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/boot /boot nodev,noatime
+
+    # Mount /recovery partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/recovery /recovery nodev,noatime
+
+    # Mount /nvram partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/nvram /nvram nodev,noatime
+
+    # Mount /logo partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/logo /logo nodev,noatime
+
+    # Mount /lk partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/lk /lk nodev,noatime
+
+    # Mount /preloader partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/preloader /preloader nodev,noatime
+
+    # Mount /mbr partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/mbr /mbr nodev,noatime
+
+    # Mount /ebr1 partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/ebr1 /ebr1 nodev,noatime
+
+    # Mount /pmt partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/pmt /pmt nodev,noatime
+
+    # Mount /nvdata partition
+    mount ext4 /dev/block/platform/mtk-msdc.0/by-name/nvdata /nvdata nosuid,nodev,noatime,nodiratime,discard,errors=continue
+
+    # Mount /seccfg partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/seccfg /seccfg nodev,noatime
+
+    # Mount /proinfo partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/proinfo /proinfo nodev,noatime
+
+    # Mount /misc partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/misc /misc nodev,noatime
+
+    # Mount /ota partition
+    mount ext4 /dev/block/platform/mtk-msdc.0/by-name/ota /ota nosuid,nodev,noatime,nodiratime,discard,errors=continue
+
+    # Mount /md1rom partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/md1rom /md1rom nodev,noatime
+
+    # Mount /md1dsp partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/md1dsp /md1dsp nodev,noatime
+
+    # Mount /md1arm7 partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/md1arm7 /md1arm7 nodev,noatime
+
+    # Mount /md3rom partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/md3rom /md3rom nodev,noatime
+
+    # Mount /nvram.bin partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/nvram.bin /nvram.bin nodev,noatime
+
+    # Mount /emsc partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/emsc /emsc nodev,noatime
+
+    # Mount /cust partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/cust /cust nodev,noatime
+
+    # Mount /usrdata partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/usrdata /usrdata nodev,noatime
+
+    # Mount /froid partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/froid /froid nodev,noatime
+
+    # Mount /temp partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/temp /temp nodev,noatime
+
+    # Mount /bmtpool partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/bmtpool /bmtpool nodev,noatime
+
+    # Mount /sgpt partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/sgpt /sgpt nodev,noatime
+
+    # Mount /pgpt partition
+    mount emmc /dev/block/platform/mtk-msdc.0/by-name/pgpt /pgpt nodev,noatime
+
+    # Mount /android_secure partition
+    mount vfat /dev/block/platform/mtk-msdc.0/by-name/android_secure /android_secure nodev,noatime
+
+    # Mount /sdcard1 partition
+    mount vfat /dev/block/platform/mtk-msdc.0/by-name/sdcard1 /sdcard1 nodev,noatime
+
+    # Mount /fat partition
+    mount vfat /dev/block/platform/mtk-msdc.0/by-name/fat /fat nodev,noatime
+
+    # Set permissions
+    chmod 0755 /dev/block/platform/mtk-msdc.0/by-name
+    chmod 0755 /dev/block/platform/mtk-msdc.0/by-name/*
+
+    # Start TWRP services
+    exec u:r:recovery:s0 root root -- /system/bin/twrp
+
+# TWRP Recovery initialization complete
+on post-fs-data
+    # Set up TWRP directories
+    mkdir /data/media/0 0771 media_rw_data0
+    mkdir /data/media/0/TWRP 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/recovery 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/boot 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/system 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/cache 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/data 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/nvram 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/misc 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/logo 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/lk 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/preloader 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/mbr 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/ebr1 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/pmt 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/nvdata 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/seccfg 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/proinfo 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/ota 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/md1rom 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/md1dsp 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/md1arm7 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/md3rom 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/nvram.bin 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/emsc 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/cust 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/usrdata 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/froid 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/temp 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/bmtpool 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/sgpt 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/pgpt 0775 media_rw_data0
+
+    # Set properties
+    setprop tw.device.info.max_brightness 255
+    setprop tw.device.info.default_brightness 128
+    setprop tw.device.info.screen_timeout_secs 0
+    setprop tw.device.info.has_battery_percentage true
+    setprop tw.device.info.show_battery_temperature false
+    setprop tw.device.info.show_battery_voltage false
+    setprop tw.device.info.show_battery_current false
+    setprop tw.device.info.show_battery_power false
+    setprop tw.device.info.show_battery_health false
+    setprop tw.device.info.show_battery_cycle_count false
+
+    # Set TWRP UI properties
+    setprop tw.ui.orientation_type 0
+    setprop tw.ui.show_power_button true
+    setprop tw.ui.show_reboot_button true
+    setprop tw.ui.show_oreo_style true
+    setprop tw.ui.show_header true
+    setprop tw.ui.show_ascending_sort true
+    setprop tw.ui.show_grid_view false
+    setprop tw.ui.show_nav_bar true
+    setprop tw.ui.show_status_bar true
+    setprop tw.ui.show_action_bar true
+    setprop tw.ui.show_action_menu true
+    setprop tw.ui.show_help_page true
+    setprop tw.ui.show_settings_page true
+    setprop tw.ui.show_backup_page true
+    setprop tw.ui.show_restore_page true
+    setprop tw.ui.show_wipe_page true
+    setprop tw.ui.show_mount_page true
+    setprop tw.ui.show_install_page true
+    setprop tw.ui.show_reboot_page true
+    setprop tw.ui.show_power_off_page true
+    setprop tw.ui.show_power_off_menu true
+    setprop tw.ui.show_reboot_menu true
+    setprop tw.ui.show_reboot_recovery true
+    setprop tw.ui.show_reboot_system true
+    setprop tw.ui.show_reboot_bootloader true
+    setprop tw.ui.show_reboot_download true
+    setprop tw.ui.show_reboot_power_off true
+
+    # Set TWRP backup properties
+    setprop tw.backup.name OPPO-F3-CPH1609
+    setprop tw.backup.date true
+    setprop tw.backup.system_size 1887436800
+    setprop tw.backup.cache_size 268435456
+    setprop tw.backup.data_size 27682406400
+    setprop tw.backup.boot_size 16777216
+    setprop tw.backup.recovery_size 16777216
+    setprop tw.backup.nvram_size 2097152
+    setprop tw.backup.misc_size 1048576
+    setprop tw.backup.logo_size 8388608
+    setprop tw.backup.lk_size 1048576
+    setprop tw.backup.preloader_size 262144
+    setprop tw.backup.mbr_size 4096
+    setprop tw.backup.ebr1_size 4096
+    setprop tw.backup.pmt_size 4194304
+    setprop tw.backup.nvdata_size 67108864
+    setprop tw.backup.seccfg_size 131072
+    setprop tw.backup.proinfo_size 3145728
+    setprop tw.backup.misc_size 1048576
+    setprop tw.backup.ota_size 134217728
+    setprop tw.backup.md1rom_size 67108864
+    setprop tw.backup.md1dsp_size 262144
+    setprop tw.backup.md1arm7_size 262144
+    setprop tw.backup.md3rom_size 262144
+    setprop tw.backup.nvram.bin_size 262144
+    setprop tw.backup.emsc_size 262144
+    setprop tw.backup.cust_size 262144
+    setprop tw.backup.usrdata_size 262144
+    setprop tw.backup.froid_size 262144
+    setprop tw.backup.temp_size 262144
+    setprop tw.backup.bmtpool_size 20971520
+    setprop tw.backup.sgpt_size 131072
+    setprop tw.backup.pgpt_size 131072
+
+    # Set TWRP restore properties
+    setprop tw.restore.system true
+    setprop tw.restore.cache true
+    setprop tw.restore.data true
+    setprop tw.restore.boot true
+    setprop tw.restore.recovery true
+    setprop tw.restore.nvram true
+    setprop tw.restore.misc true
+    setprop tw.restore.logo true
+    setprop tw.restore.lk true
+    setprop tw.restore.preloader true
+    setprop tw.restore.mbr true
+    setprop tw.restore.ebr1 true
+    setprop tw.restore.pmt true
+    setprop tw.restore.nvdata true
+    setprop tw.restore.seccfg true
+    setprop tw.restore.proinfo true
+    setprop tw.restore.misc true
+    setprop tw.restore.ota true
+    setprop tw.restore.md1rom true
+    setprop tw.restore.md1dsp true
+    setprop tw.restore.md1arm7 true
+    setprop tw.restore.md3rom true
+    setprop tw.restore.nvram.bin true
+    setprop tw.restore.emsc true
+    setprop tw.restore.cust true
+    setprop tw.restore.usrdata true
+    setprop tw.restore.froid true
+    setprop tw.restore.temp true
+    setprop tw.restore.bmtpool true
+    setprop tw.restore.sgpt true
+    setprop tw.restore.pgpt true
+
+    # Set TWRP wipe properties
+    setprop tw.wipe.data true
+    setprop tw.wipe.cache true
+    setprop tw.wipe.dalvik true
+    setprop tw.wipe.system true
+    setprop tw.wipe.vendor true
+    setprop tw.wipe.obb true
+    setprop tw.wipe.modem true
+    setprop tw.wipe.nvr true
+    setprop tw.wipe.persist true
+    setprop tw.wipe.misc true
+    setprop tw.wipe.firmware true
+
+    # Set TWRP mount properties
+    setprop tw.mount.system_ro true
+    setprop tw.mount.data_rw true
+    setprop tw.mount.cache_rw true
+    setprop tw.mount.obb_rw true
+    setprop tw.mount.usb_storage true
+    setprop tw.mount.sdcard true
+    setprop tw.mount.usb_otg true
+
+    # Set TWRP file manager properties
+    setprop tw.file_manager.start_path /sdcard
+    setprop tw.file_manager.show_hidden true
+    setprop tw.file_manager.show_system true
+    setprop tw.file_manager.show_root true
+    setprop tw.file_manager.show_size true
+    setprop tw.file_manager.show_permissions true
+    setprop tw.file_manager.show_owner true
+    setprop tw.file_manager.show_group true
+    setprop tw.file_manager.show_modified true
+    setprop tw.file_manager.show_date true
+    setprop tw.file_manager.show_time true
+    setprop tw.file_manager.show_file_type true
+    setprop tw.file_manager.show_file_size true
+    setprop tw.file_manager.show_file_permissions true
+    setprop tw.file_manager.show_file_owner true
+    setprop tw.file_manager.show_file_group true
+    setprop tw.file_manager.show_file_modified true
+    setprop tw.file_manager.show_file_date true
+    setprop tw.file_manager.show_file_time true
+    setprop tw.file_manager.show_file_type_icon true
+    setprop tw.file_manager.show_file_size_in_bytes true
+    setprop tw.file_manager.show_file_size_in_kb true
+    setprop tw.file_manager.show_file_size_in_mb true
+    setprop tw.file_manager.show_file_size_in_gb true
+
+    # Set TWRP terminal properties
+    setprop tw.terminal.start_path /sdcard
+    setprop tw.terminal.show_hidden true
+    setprop tw.terminal.show_system true
+    setprop tw.terminal.show_root true
+    setprop tw.terminal.show_size true
+    setprop tw.terminal.show_permissions true
+    setprop tw.terminal.show_owner true
+    setprop tw.terminal.show_group true
+    setprop tw.terminal.show_modified true
+    setprop tw.terminal.show_date true
+    setprop tw.terminal.show_time true
+    setprop tw.terminal.show_file_type true
+    setprop tw.terminal.show_file_size true
+    setprop tw.terminal.show_file_permissions true
+    setprop tw.terminal.show_file_owner true
+    setprop tw.terminal.show_file_group true
+    setprop tw.terminal.show_file_modified true
+    setprop tw.terminal.show_file_date true
+    setprop tw.terminal.show_file_time true
+    setprop tw.terminal.show_file_type_icon true
+    setprop tw.terminal.show_file_size_in_bytes true
+    setprop tw.terminal.show_file_size_in_kb true
+    setprop tw.terminal.show_file_size_in_mb true
+    setprop tw.terminal.show_file_size_in_gb true
+
+    # Set TWRP log properties
+    setprop tw.log.enabled true
+    setprop tw.log.path /sdcard/TWRP
+    setprop tw.log.filename twrp.log
+    setprop tw.log.max_size 10485760
+    setprop tw.log.max_files 10
+    setprop tw.log.auto_delete true
+    setprop tw.log.auto_delete_days 30
+    setprop tw.log.auto_delete_size 104857600
+    setprop tw.log.auto_delete_count 100
+    setprop tw.log.auto_delete_enabled true
+
+# TWRP Recovery initialization complete
+on boot
+    # Start TWRP services
+    exec u:r:recovery:s0 root root -- /system/bin/twrp
+
+# TWRP Recovery initialization complete
+on post-fs
+    # Set up TWRP directories
+    mkdir /data/media/0 0771 media_rw_data0
+    mkdir /data/media/0/TWRP 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/recovery 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/boot 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/system 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/cache 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/data 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/nvram 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/misc 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/logo 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/lk 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/preloader 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/mbr 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/ebr1 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/pmt 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/nvdata 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/seccfg 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/proinfo 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/ota 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/md1rom 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/md1dsp 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/md1arm7 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/md3rom 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/nvram.bin 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/emsc 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/cust 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/usrdata 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/froid 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/temp 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/bmtpool 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/sgpt 0775 media_rw_data0
+    mkdir /data/media/0/TWRP/BACKUPS/CPH1609/pgpt 0775 media_rw_data0
+
+    # Set properties
+    setprop tw.device.info.max_brightness 255
+    setprop tw.device.info.default_brightness 128
+    setprop tw.device.info.screen_timeout_secs 0
+    setprop tw.device.info.has_battery_percentage true
+    setprop tw.device.info.show_battery_temperature false
+    setprop tw.device.info.show_battery_voltage false
+    setprop tw.device.info.show_battery_current false
+    setprop tw.device.info.show_battery_power false
+    setprop tw.device.info.show_battery_health false
+    setprop tw.device.info.show_battery_cycle_count false
+
+    # Set TWRP UI properties
+    setprop tw.ui.orientation_type 0
+    setprop tw.ui.show_power_button true
+    setprop tw.ui.show_reboot_button true
+    setprop tw.ui.show_oreo_style true
+    setprop tw.ui.show_header true
+    setprop tw.ui.show_ascending_sort true
+    setprop tw.ui.show_grid_view false
+    setprop tw.ui.show_nav_bar true
+    setprop tw.ui.show_status_bar true
+    setprop tw.ui.show_action_bar true
+    setprop tw.ui.show_action_menu true
+    setprop tw.ui.show_help_page true
+    setprop tw.ui.show_settings_page true
+    setprop tw.ui.show_backup_page true
+    setprop tw.ui.show_restore_page true
+    setprop tw.ui.show_wipe_page true
+    setprop tw.ui.show_mount_page true
+    setprop tw.ui.show_install_page true
+    setprop tw.ui.show_reboot_page true
+    setprop tw.ui.show_power_off_page true
+    setprop tw.ui.show_power_off_menu true
+    setprop tw.ui.show_reboot_menu true
+    setprop tw.ui.show_reboot_recovery true
+    setprop tw.ui.show_reboot_system true
+    setprop tw.ui.show_reboot_bootloader true
+    setprop tw.ui.show_reboot_download true
+    setprop tw.ui.show_reboot_power_off true
+
+    # Set TWRP backup properties
+    setprop tw.backup.name OPPO-F3-CPH1609
+    setprop tw.backup.date true
+    setprop tw.backup.system_size 1887436800
+    setprop tw.backup.cache_size 268435456
+    setprop tw.backup.data_size 27682406400
+    setprop tw.backup.boot_size 16777216
+    setprop tw.backup.recovery_size 16777216
+    setprop tw.backup.nvram_size 2097152
+    setprop tw.backup.misc_size 1048576
+    setprop tw.backup.logo_size 8388608
+    setprop tw.backup.lk_size 1048576
+    setprop tw.backup.preloader_size 262144
+    setprop tw.backup.mbr_size 4096
+    setprop tw.backup.ebr1_size 4096
+    setprop tw.backup.pmt_size 4194304
+    setprop tw.backup.nvdata_size 67108864
+    setprop tw.backup.seccfg_size 131072
+    setprop tw.backup.proinfo_size 3145728
+    setprop tw.backup.misc_size 1048576
+    setprop tw.backup.ota_size 134217728
+    setprop tw.backup.md1rom_size 67108864
+    setprop tw.backup.md1dsp_size 262144
+    setprop tw.backup.md1arm7_size 262144
+    setprop tw.backup.md3rom_size 262144
+    setprop tw.backup.nvram.bin_size 262144
+    setprop tw.backup.emsc_size 262144
+    setprop tw.backup.cust_size 262144
+    setprop tw.backup.usrdata_size 262144
+    setprop tw.backup.froid_size 262144
+    setprop tw.backup.temp_size 262144
+    setprop tw.backup.bmtpool_size 20971520
+    setprop tw.backup.sgpt_size 131072
+    setprop tw.backup.pgpt_size 131072
+
+    # Set TWRP restore properties
+    setprop tw.restore.system true
+    setprop tw.restore.cache true
+    setprop tw.restore.data true
+    setprop tw.restore.boot true
+    setprop tw.restore.recovery true
+    setprop tw.restore.nvram true
+    setprop tw.restore.misc true
+    setprop tw.restore.logo true
+    setprop tw.restore.lk true
+    setprop tw.restore.preloader true
+    setprop tw.restore.mbr true
+    setprop tw.restore.ebr1 true
+    setprop tw.restore.pmt true
+    setprop tw.restore.nvdata true
+    setprop tw.restore.seccfg true
+    setprop tw.restore.proinfo true
+    setprop tw.restore.misc true
+    setprop tw.restore.ota true
+    setprop tw.restore.md1rom true
+    setprop tw.restore.md1dsp true
+    setprop tw.restore.md1arm7 true
+    setprop tw.restore.md3rom true
+    setprop tw.restore.nvram.bin true
+    setprop tw.restore.emsc true
+    setprop tw.restore.cust true
+    setprop tw.restore.usrdata true
+    setprop tw.restore.froid true
+    setprop tw.restore.temp true
+    setprop tw.restore.bmtpool true
+    setprop tw.restore.sgpt true
+    setprop tw.restore.pgpt true
+
+    # Set TWRP wipe properties
+    setprop tw.wipe.data true
+    setprop tw.wipe.cache true
+    setprop tw.wipe.dalvik true
+    setprop tw.wipe.system true
+    setprop tw.wipe.vendor true
+    setprop tw.wipe.obb true
+    setprop tw.wipe.modem true
+    setprop tw.wipe.nvr true
+    setprop tw.wipe.persist true
+    setprop tw.wipe.misc true
+    setprop tw.wipe.firmware true
+
+    # Set TWRP mount properties
+    setprop tw.mount.system_ro true
+    setprop tw.mount.data_rw true
+    setprop tw.mount.cache_rw true
+    setprop tw.mount.obb_rw true
+    setprop tw.mount.usb_storage true
+    setprop tw.mount.sdcard true
+    setprop tw.mount.usb_otg true
+
+    # Set TWRP file manager properties
+    setprop tw.file_manager.start_path /sdcard
+    setprop tw.file_manager.show_hidden true
+    setprop tw.file_manager.show_system true
+    setprop tw.file_manager.show_root true
+    setprop tw.file_manager.show_size true
+    setprop tw.file_manager.show_permissions true
+    setprop tw.file_manager.show_owner true
+    setprop tw.file_manager.show_group true
+    setprop tw.file_manager.show_modified true
+    setprop tw.file_manager.show_date true
+    setprop tw.file_manager.show_time true
+    setprop tw.file_manager.show_file_type true
+    setprop tw.file_manager.show_file_size true
+    setprop tw.file_manager.show_file_permissions true
+    setprop tw.file_manager.show_file_owner true
+    setprop tw.file_manager.show_file_group true
+    setprop tw.file_manager.show_file_modified true
+    setprop tw.file_manager.show_file_date true
+    setprop tw.file_manager.show_file_time true
+    setprop tw.file_manager.show_file_type_icon true
+    setprop tw.file_manager.show_file_size_in_bytes true
+    setprop tw.file_manager.show_file_size_in_kb true
+    setprop tw.file_manager.show_file_size_in_mb true
+    setprop tw.file_manager.show_file_size_in_gb true
+
+    # Set TWRP terminal properties
+    setprop tw.terminal.start_path /sdcard
+    setprop tw.terminal.show_hidden true
+    setprop tw.terminal.show_system true
+    setprop tw.terminal.show_root true
+    setprop tw.terminal.show_size true
+    setprop tw.terminal.show_permissions true
+    setprop tw.terminal.show_owner true
+    setprop tw.terminal.show_group true
+    setprop tw.terminal.show_modified true
+    setprop tw.terminal.show_date true
+    setprop tw.terminal.show_time true
+    setprop tw.terminal.show_file_type true
+    setprop tw.terminal.show_file_size true
+    setprop tw.terminal.show_file_permissions true
+    setprop tw.terminal.show_file_owner true
+    setprop tw.terminal.show_file_group true
+    setprop tw.terminal.show_file_modified true
+    setprop tw.terminal.show_file_date true
+    setprop tw.terminal.show_file_time true
+    setprop tw.terminal.show_file_type_icon true
+    setprop tw.terminal.show_file_size_in_bytes true
+    setprop tw.terminal.show_file_size_in_kb true
+    setprop tw.terminal.show_file_size_in_mb true
+    setprop tw.terminal.show_file_size_in_gb true
+
+    # Set TWRP log properties
+    setprop tw.log.enabled true
+    setprop tw.log.path /sdcard/TWRP
+    setprop tw.log.filename twrp.log
+    setprop tw.log.max_size 10485760
+    setprop tw.log.max_files 10
+    setprop tw.log.auto_delete true
+    setprop tw.log.auto_delete_days 30
+    setprop tw.log.auto_delete_size 104857600
+    setprop tw.log.auto_delete_count 100
+    setprop tw.log.auto_delete_enabled true

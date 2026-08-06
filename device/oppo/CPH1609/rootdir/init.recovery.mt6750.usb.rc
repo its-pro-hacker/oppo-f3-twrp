@@ -1,0 +1,13 @@
+# init.recovery.mt6750.usb.rc - USB Configuration
+# OPPO F3 (CPH1609) - MediaTek MT6750
+
+on early-init
+    write /sys/class/android_usb/android0/enable 0
+    write /sys/class/android_usb/android0/idVendor 0bb4
+    write /sys/class/android_usb/android0/idProduct 0c87
+    write /sys/class/android_usb/android0/functions adb,usb_mtp
+    write /sys/class/android_usb/android0/enable 1
+
+    setprop sys.usb.config adb,mtp
+    setprop sys.usb.state adb,mtp
+    setprop sys.usb.controller mtk_msdc0

@@ -1,0 +1,50 @@
+# OPPO F3 TWRP - Git Ignore
+
+# Build output
+output/
+*.img
+*.zip
+
+# Logs
+logics/*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Node
+node_modules/
+package-lock.json
+
+# Build directories
+out/
+build/
+ccache/
+
+# Firmware files (user should not commit these)
+firmware/*.zip
+firmware/*.img
+firmware/*.bin
+
+# Extracted firmware (user should not commit these)
+extract/

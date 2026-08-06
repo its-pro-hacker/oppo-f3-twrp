@@ -1,0 +1,73 @@
+# TWRP FSTAB for OPPO F3 (CPH1609)
+# MediaTek MT6750 - Android 6.0.1 Marshmallow
+# TWRP specific mount points
+
+# Device block paths for TWRP
+# /dev/block/platform/mtk-msdc.0/by-name/
+
+# System
+/dev/block/platform/mtk-msdc.0/by-name/system    /system      ext4    ro
+# Cache
+/dev/block/platform/mtk-msdc.0/by-name/cache     /cache       ext4    noatime,nodiratime,nosuid,nodev,noauto_da_alloc,discard
+# Data (userdata) - with encryption support
+/dev/block/platform/mtk-msdc.0/by-name/userdata  /data        ext4    noatime,nodiratime,nosuid,nodev,noauto_da_alloc,discard
+# Boot
+/dev/block/platform/mtk-msdc.0/by-name/boot      /boot        emmc    defaults
+# Recovery
+/dev/block/platform/mtk-msdc.0/by-name/recovery  /recovery    emmc    defaults
+# NVRAM
+/dev/block/platform/mtk-msdc.0/by-name/nvram     /nvram       emmc    defaults
+# Logo
+/dev/block/platform/mtk-msdc.0/by-name/logo      /logo        emmc    defaults
+# LK
+/dev/block/platform/mtk-msdc.0/by-name/lk        /lk          emmc    defaults
+# Preloader
+/dev/block/platform/mtk-msdc.0/by-name/preloader /preloader   emmc    defaults
+# MBR
+/dev/block/platform/mtk-msdc.0/by-name/mbr       /mbr         emmc    defaults
+# EBR1
+/dev/block/platform/mtk-msdc.0/by-name/ebr1      /ebr1        emmc    defaults
+# PMT
+/dev/block/platform/mtk-msdc.0/by-name/pmt       /pmt         emmc    defaults
+# NVRAM DATA
+/dev/block/platform/mtk-msdc.0/by-name/nvdata    /nvdata      ext4    noatime,nodiratime,nosuid,nodev,noauto_da_alloc,discard
+# SECCFG
+/dev/block/platform/mtk-msdc.0/by-name/seccfg    /seccfg      emmc    defaults
+# PROINFO
+/dev/block/platform/mtk-msdc.0/by-name/proinfo   /proinfo     emmc    defaults
+# MISC
+/dev/block/platform/mtk-msdc.0/by-name/misc      /misc        emmc    defaults
+# OTA
+/dev/block/platform/mtk-msdc.0/by-name/ota       /ota         ext4    noatime,nodiratime,nosuid,nodev,noauto_da_alloc,discard
+# MD1
+/dev/block/platform/mtk-msdc.0/by-name/md1rom    /md1rom      emmc    defaults
+# MD1 DSP
+/dev/block/platform/mtk-msdc.0/by-name/md1dsp    /md1dsp      emmc    defaults
+# MD1 ARM7
+/dev/block/platform/mtk-msdc.0/by-name/md1arm7   /md1arm7     emmc    defaults
+# MD3
+/dev/block/platform/mtk-msdc.0/by-name/md3rom    /md3rom      emmc    defaults
+# NVRAM BIN
+/dev/block/platform/mtk-msdc.0/by-name/nvram.bin /nvram.bin   emmc    defaults
+# EMSC
+/dev/block/platform/mtk-msdc.0/by-name/emsc      /emsc        emmc    defaults
+# CUST
+/dev/block/platform/mtk-msdc.0/by-name/cust      /cust        emmc    defaults
+# USRDATA
+/dev/block/platform/mtk-msdc.0/by-name/usrdata   /usrdata     emmc    defaults
+# FROID
+/dev/block/platform/mtk-msdc.0/by-name/froid     /froid       emmc    defaults
+# TEMP
+/dev/block/platform/mtk-msdc.0/by-name/temp      /temp        emmc    defaults
+# BMTPOOL
+/dev/block/platform/mtk-msdc.0/by-name/bmtpool   /bmtpool     emmc    defaults
+# SGPT
+/dev/block/platform/mtk-msdc.0/by-name/sgpt      /sgpt        emmc    defaults
+# PGPT
+/dev/block/platform/mtk-msdc.0/by-name/pgpt      /pgpt        emmc    defaults
+# Android secure
+/dev/block/platform/mtk-msdc.0/by-name/android_secure /android_secure vfat defaults
+# SD Card
+/dev/block/platform/mtk-msdc.0/by-name/sdcard1   /sdcard1     vfat    defaults
+# FAT
+/dev/block/platform/mtk-msdc.0/by-name/fat       /fat         vfat    defaults
