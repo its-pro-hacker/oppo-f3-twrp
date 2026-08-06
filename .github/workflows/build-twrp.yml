@@ -86,21 +86,30 @@ jobs:
         export CCACHE_DIR=~/.ccache
         
         java -version 2>&1
-        echo "Sourcing envsetup.sh..."
+        echo "=== Sourcing envsetup.sh ==="
         source build/envsetup.sh 2>&1
-        echo "Running lunch..."
+        echo "=== lunch ==="
         lunch omni_CPH1609-eng 2>&1
-        echo "Checking mka..."
-        which mka 2>&1 || echo "mka not found, will use make"
-        echo "Starting build..."
-        mka recoveryimage -j$(nproc) 2>&1 | tee build.log || make recoveryimage -j$(nproc) 2>&1 | tee build.log
+        echo "=== check mka ==="
+        type mka 2>&1
+        echo "=== check make ==="
+        which make 2>&1
+        echo "=== starting build ==="
+        mka recoveryimage -j$(nproc) 2>&1 > build_output.txt; echo "mka exit: $?"
+        if [ ! -s build_output.txt ]; then
+          echo "mka produced no output, trying make..."
+          make recoveryimage -j$(nproc) 2>&1 > build_output.txt; echo "make exit: $?"
+        fi
+        echo "=== Build output (last 500 lines) ==="
+        tail -500 build_output.txt 2>/dev/null || echo "No build output"
+        cp build_output.txt build.log 2>/dev/null || true
         
     - name: Upload Build Log
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: build-log
-        path: ~/android/twrp/build.log
+        path: /home/runner/android/twrp/build.log
         
     - name: Show Build Errors
       if: always()
