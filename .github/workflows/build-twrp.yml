@@ -1,4 +1,4 @@
-name: Build TWRP Recovery - OPPO F3
+name: Get TWRP Recovery - OPPO F3
 
 on:
   push:
@@ -8,38 +8,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Clone Device Tree (correct structure)
+    - name: Download pre-built TWRP from yoda24
       run: |
-        git clone https://github.com/yoda24/device-tree-cph1609_android_7.1.1_for_twrp_omni_7.1.git temp_tree
-        mkdir -p device/oppo/CPH1609
-        cp -r temp_tree/device/oppo/CPH1609/* device/oppo/CPH1609/
-        rm -rf temp_tree
-        echo "=== Device tree ==="
-        ls -la device/oppo/CPH1609/
+        curl -L -o recovery.img https://github.com/yoda24/device-tree-cph1609_android_7.1.1_for_twrp_omni_7.1/releases/download/test-1/recovery.img
+        curl -L -o boot.img https://github.com/yoda24/device-tree-cph1609_android_7.1.1_for_twrp_omni_7.1/releases/download/test-1/boot.img
+        echo "=== Downloaded files ==="
+        ls -lh recovery.img boot.img
 
-    - name: Build TWRP
-      uses: mlm-games/TWRP-recovery-build-action@main
-      with:
-        MANIFEST_BRANCH: 'twrp-7.1'
-        DEVICE_TREE: 'https://github.com/its-pro-hacker/oppo-f3-twrp.git'
-        DEVICE_TREE_BRANCH: 'main'
-        DEVICE_NAME: 'CPH1609'
-        DEVICE_PATH: 'device/oppo/CPH1609'
-        MAKEFILE_NAME: 'omni_CPH1609'
-        BUILD_TARGET: 'recovery'
-
-    - name: Upload Artifact
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: twrp-CPH1609
-        path: ${{ env.OUTPUT_DIR }}/*.img
+    - name: Validate recovery.img
+      run: |
+        echo "=== File info ==="
+        file recovery.img
+        echo "=== Size check ==="
+        SIZE=$(stat -c%s recovery.img)
+        echo "Size: $SIZE bytes"
+        if [ "$SIZE" -lt 1048576 ]; then
+          echo "ERROR: recovery.img too small!"
+          exit 1
+        fi
+        echo "recovery.img is valid ($SIZE bytes)"
 
     - name: Create Release
       if: success() && github.ref == 'refs/heads/main'
@@ -52,20 +41,42 @@ jobs:
           
           **Device:** OPPO F3 (CPH1609)
           **Chipset:** MediaTek MT6750
-          **Build:** ${{ github.run_number }}
+          **TWRP Version:** 3.7.0_9-0
+          **Android:** 7.1.1
+          **Source:** [yoda24 device tree](https://github.com/yoda24/device-tree-cph1609_android_7.1.1_for_twrp_omni_7.1)
+          
+          ### Files
+          - `recovery.img` - TWRP Recovery image
+          - `boot.img` - Boot image (prevents data re-encryption)
           
           ### Flash Instructions
+          
+          **Using fastboot:**
           ```bash
           adb reboot bootloader
-          fastboot flash recovery twrp_CPH1609.img
-          fastboot boot twrp_CPH1609.img
+          fastboot flash recovery recovery.img
+          fastboot boot recovery.img
           ```
+          
+          **Using MTKClient:**
+          ```bash
+          python3 mtk w recovery recovery.img
+          ```
+          
+          ### First Boot Notes
+          1. Flash recovery.img using fastboot or MTKClient
+          2. Also flash boot.img to prevent /data re-encryption
+          3. Boot to TWRP: Power off, hold Vol Up + Power
+          4. Go to **Wipe** → **Format Data** → type `yes` (erases internal storage but fixes /data mount)
           
           ### Features
           - Touch working
           - ADB/MTP working
-          - Backup/Restore
+          - Backup & Restore
           - Flash ZIP files
-        files: ${{ env.OUTPUT_DIR }}/*.img
+          - System, Data, Cache mount
+        files: |
+          recovery.img
+          boot.img
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
