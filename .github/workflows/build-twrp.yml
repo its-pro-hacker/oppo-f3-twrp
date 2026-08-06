@@ -24,7 +24,7 @@ jobs:
         ls -la device/oppo/CPH1609/
 
     - name: Build TWRP
-      uses: mlm-games/twrp-build-action@main
+      uses: mlm-games/TWRP-recovery-build-action@main
       with:
         MANIFEST_BRANCH: 'twrp-7.1'
         DEVICE_TREE: 'https://github.com/its-pro-hacker/oppo-f3-twrp.git'
