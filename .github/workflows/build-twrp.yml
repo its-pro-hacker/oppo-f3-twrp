@@ -14,10 +14,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Ubuntu
+    - name: Setup Ubuntu + Java
       run: |
-        sudo apt-get update -qq || true
-        sudo apt-get install -y -qq git gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig python3 libssl-dev ccache lzop imagemagick bc || true
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq git gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig python3 libssl-dev ccache lzop imagemagick bc openjdk-8-jdk
+        
+    - name: Verify Java
+      run: |
+        java -version 2>&1 || true
+        javac -version 2>&1 || true
+        export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
         
     - name: Install repo
       run: |
@@ -46,12 +53,17 @@ jobs:
     - name: Check Device Config
       run: |
         cd ~/android/twrp
-        echo "=== Checking AndroidProducts.mk ==="
+        echo "=== AndroidProducts.mk ==="
         cat device/oppo/CPH1609/AndroidProducts.mk
         echo ""
-        echo "=== Available lunch targets ==="
-        source build/envsetup.sh 2>/dev/null || true
-        grep -r "omni_CPH1609" device/oppo/CPH1609/ || echo "No omni_CPH1609 found"
+        echo "=== vendorsetup.sh ==="
+        cat device/oppo/CPH1609/vendorsetup.sh 2>/dev/null || echo "No vendorsetup.sh"
+        echo ""
+        echo "=== omni_CPH1609.mk ==="
+        cat device/oppo/CPH1609/omni_CPH1609.mk 2>/dev/null || echo "No omni_CPH1609.mk"
+        echo ""
+        echo "=== BoardConfig.mk ==="
+        cat device/oppo/CPH1609/BoardConfig.mk 2>/dev/null || echo "No BoardConfig.mk"
         
     - name: Fix SELinux
       run: |
@@ -60,30 +72,47 @@ jobs:
         
     - name: Build TWRP
       run: |
+        set -x
         cd ~/android/twrp
+        export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+        export PATH=$JAVA_HOME/bin:$PATH
         export LC_ALL=C
         export USE_CCACHE=1
         export CCACHE_DIR=~/.ccache
+        
+        echo "=== Java version ==="
+        java -version 2>&1
+        
+        echo "=== Sourcing build/envsetup.sh ==="
         source build/envsetup.sh
+        echo "envsetup.sh sourced OK"
+        
+        echo "=== Running lunch ==="
         lunch omni_CPH1609-eng
-        make recoveryimage -j$(nproc) 2>&1 | tee build.log || make recoveryimage -j2 2>&1 | tee build.log || make recoveryimage 2>&1 | tee build.log
+        echo "lunch OK"
+        
+        echo "=== Starting build ==="
+        make recoveryimage -j$(nproc) 2>&1 | tee build.log
         
     - name: Check Build Result
       if: always()
       run: |
         cd ~/android/twrp
         if [ -f "out/target/product/CPH1609/recovery.img" ]; then
-          echo "✅ Build Successful!"
+          echo "BUILD SUCCESSFUL!"
           ls -lh out/target/product/CPH1609/recovery.img
           mkdir -p ${{ github.workspace }}/output
           cp out/target/product/CPH1609/recovery.img ${{ github.workspace }}/output/twrp_CPH1609.img
         else
-          echo "❌ Build Failed!"
-          echo "=== Last 200 lines of build.log ==="
-          tail -200 build.log || echo "No build.log found"
+          echo "BUILD FAILED!"
+          echo "=== Last 300 lines of build.log ==="
+          tail -300 build.log 2>/dev/null || echo "No build.log"
           echo ""
-          echo "=== Checking out directory ==="
-          ls -la out/target/product/ 2>/dev/null || echo "No out/target/product directory"
+          echo "=== out directory ==="
+          ls -la out/target/product/ 2>/dev/null || echo "No out/target/product"
+          echo ""
+          echo "=== out/target/product/CPH1609 ==="
+          ls -la out/target/product/CPH1609/ 2>/dev/null || echo "No CPH1609 dir"
           exit 1
         fi
         
