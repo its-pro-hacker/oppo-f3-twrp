@@ -13,135 +13,34 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Setup Java 8
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '8'
-        
-    - name: Setup Ubuntu
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y -qq git gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig python3 libssl-dev ccache lzop imagemagick bc || true
-        
-    - name: Install repo
-      run: |
-        mkdir -p ~/.bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
-        chmod a+x ~/.bin/repo
-        echo "$HOME/.bin" >> $GITHUB_PATH
-        
-    - name: Verify Environment
-      run: |
-        echo "=== Java ==="
-        java -version
-        echo "JAVA_HOME=$JAVA_HOME"
-        echo "=== Disk Space ==="
-        df -h /
-        
-    - name: Download TWRP Source
-      run: |
-        mkdir -p ~/android/twrp
-        cd ~/android/twrp
-        repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-7.1
-        repo sync -c --force-sync --no-tags -j$(nproc) || repo sync -c --force-sync --no-tags -j2 || repo sync -c --force-sync --no-tags
-        
-    - name: Clone Device Tree
-      run: |
-        cd ~/android/twrp
-        git clone https://github.com/yoda24/device-tree-cph1609_android_7.1.1_for_twrp_omni_7.1.git temp_device_tree
-        mkdir -p device/oppo/CPH1609
-        cp -r temp_device_tree/device/oppo/CPH1609/* device/oppo/CPH1609/
-        rm -rf temp_device_tree
-        echo "=== Device tree files ==="
-        ls -la device/oppo/CPH1609/
-        
-    - name: Check Device Config
-      run: |
-        cd ~/android/twrp
-        echo "=== AndroidProducts.mk ==="
-        cat device/oppo/CPH1609/AndroidProducts.mk
-        echo ""
-        echo "=== vendorsetup.sh ==="
-        cat device/oppo/CPH1609/vendorsetup.sh 2>/dev/null || echo "No vendorsetup.sh"
-        echo ""
-        echo "=== omni_CPH1609.mk ==="
-        cat device/oppo/CPH1609/omni_CPH1609.mk 2>/dev/null || echo "No omni_CPH1609.mk"
-        echo ""
-        echo "=== BoardConfig.mk ==="
-        cat device/oppo/CPH1609/BoardConfig.mk 2>/dev/null || echo "No BoardConfig.mk"
-        
-    - name: Fix SELinux
-      run: |
-        cd ~/android/twrp/device/oppo/CPH1609
-        sed -i 's/SELINUX_IGNORE_NEVERALLOWS := true/SELINUX_IGNORE_NEVERALLOWS := false/g' BoardConfig.mk 2>/dev/null || true
-        
-    - name: Build TWRP
-      run: |
-        cd ~/android/twrp
-        export PATH=$JAVA_HOME/bin:$PATH
-        export LC_ALL=C
-        export USE_CCACHE=1
-        export CCACHE_DIR=~/.ccache
-        
-        java -version 2>&1
-        echo "=== Sourcing envsetup.sh ==="
-        source build/envsetup.sh
-        echo "=== lunch ==="
-        lunch omni_CPH1609-eng
-        echo "=== check mka ==="
-        type mka 2>&1 || echo "mka not found"
-        echo "=== starting build ==="
-        mka recoveryimage -j$(nproc) &> /home/runner/android/twrp/build_output.txt
-        echo "mka exit: $?"
-        echo "=== Build output (last 500 lines) ==="
-        tail -500 /home/runner/android/twrp/build_output.txt 2>/dev/null || echo "No build output"
-        cp /home/runner/android/twrp/build_output.txt ${{ github.workspace }}/build.log 2>/dev/null || true
-        
-    - name: Upload Build Log
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-log
-        path: ${{ github.workspace }}/build.log
-        
-    - name: Show Build Errors
-      if: always()
-      run: |
-        echo "=== Last 500 lines of build.log ==="
-        tail -500 /home/runner/android/twrp/build_output.txt 2>/dev/null || echo "No build.log found"
-        echo ""
-        echo "=== out directory ==="
-        ls -la ~/android/twrp/out/target/product/ 2>/dev/null || echo "No out/target/product"
-        echo ""
-        echo "=== out/target/product/CPH1609 ==="
-        ls -la ~/android/twrp/out/target/product/CPH1609/ 2>/dev/null || echo "No CPH1609 dir"
-        echo ""
-        echo "=== out/target/product/CPH1609/obj ==="
-        ls -la ~/android/twrp/out/target/product/CPH1609/obj/ 2>/dev/null || echo "No obj dir"
 
-    - name: Check Build Result
-      if: always()
+    - name: Clone Device Tree (correct structure)
       run: |
-        cd ~/android/twrp
-        if [ -f "out/target/product/CPH1609/recovery.img" ]; then
-          echo "BUILD SUCCESSFUL!"
-          ls -lh out/target/product/CPH1609/recovery.img
-          mkdir -p ${{ github.workspace }}/output
-          cp out/target/product/CPH1609/recovery.img ${{ github.workspace }}/output/twrp_CPH1609.img
-        else
-          echo "BUILD FAILED - no recovery.img"
-          exit 1
-        fi
-        
+        git clone https://github.com/yoda24/device-tree-cph1609_android_7.1.1_for_twrp_omni_7.1.git temp_tree
+        mkdir -p device/oppo/CPH1609
+        cp -r temp_tree/device/oppo/CPH1609/* device/oppo/CPH1609/
+        rm -rf temp_tree
+        echo "=== Device tree ==="
+        ls -la device/oppo/CPH1609/
+
+    - name: Build TWRP
+      uses: mlm-games/twrp-build-action@main
+      with:
+        MANIFEST_BRANCH: 'twrp-7.1'
+        DEVICE_TREE: 'https://github.com/its-pro-hacker/oppo-f3-twrp.git'
+        DEVICE_TREE_BRANCH: 'main'
+        DEVICE_NAME: 'CPH1609'
+        DEVICE_PATH: 'device/oppo/CPH1609'
+        MAKEFILE_NAME: 'omni_CPH1609'
+        BUILD_TARGET: 'recovery'
+
     - name: Upload Artifact
-      if: success()
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: twrp-CPH1609
-        path: output/twrp_CPH1609.img
-        
+        path: ${{ env.OUTPUT_DIR }}/*.img
+
     - name: Create Release
       if: success() && github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v1
@@ -167,6 +66,6 @@ jobs:
           - ADB/MTP working
           - Backup/Restore
           - Flash ZIP files
-        files: output/twrp_CPH1609.img
+        files: ${{ env.OUTPUT_DIR }}/*.img
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
