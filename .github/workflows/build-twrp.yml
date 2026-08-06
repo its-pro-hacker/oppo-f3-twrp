@@ -36,7 +36,6 @@ jobs:
       run: |
         echo "=== Java ==="
         java -version
-        javac -version
         echo "JAVA_HOME=$JAVA_HOME"
         echo "=== Disk Space ==="
         df -h /
@@ -80,34 +79,44 @@ jobs:
         
     - name: Build TWRP
       run: |
-        set +e
         cd ~/android/twrp
         export PATH=$JAVA_HOME/bin:$PATH
         export LC_ALL=C
         export USE_CCACHE=1
         export CCACHE_DIR=~/.ccache
         
-        echo "=== Java ==="
         java -version 2>&1
-        echo "=== Disk ==="
-        df -h ~
-        
-        echo "=== List envsetup.sh head ==="
-        head -50 build/envsetup.sh
-        
-        echo "=== Sourcing envsetup.sh ==="
+        echo "Sourcing envsetup.sh..."
         source build/envsetup.sh 2>&1
-        echo "envsetup OK"
+        echo "Running lunch..."
+        lunch omni_CPH1609-eng 2>&1
+        echo "Checking mka..."
+        which mka 2>&1 || echo "mka not found, will use make"
+        echo "Starting build..."
+        mka recoveryimage -j$(nproc) 2>&1 | tee build.log || make recoveryimage -j$(nproc) 2>&1 | tee build.log
         
-        echo "=== Testing lunch function ==="
-        type lunch 2>&1 || echo "lunch not defined"
+    - name: Upload Build Log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: ~/android/twrp/build.log
         
-        echo "=== Running lunch with error capture ==="
-        lunch omni_CPH1609-eng 2>&1; echo "LUNCH_EXIT=$?"
-        
-        echo "=== Starting mka ==="
-        mka recoveryimage -j$(nproc) 2>&1 | tee build.log || echo "mka failed, trying make..." && make recoveryimage -j$(nproc) 2>&1 | tee build.log
-        
+    - name: Show Build Errors
+      if: always()
+      run: |
+        echo "=== Last 500 lines of build.log ==="
+        tail -500 ~/android/twrp/build.log 2>/dev/null || echo "No build.log found"
+        echo ""
+        echo "=== out directory ==="
+        ls -la ~/android/twrp/out/target/product/ 2>/dev/null || echo "No out/target/product"
+        echo ""
+        echo "=== out/target/product/CPH1609 ==="
+        ls -la ~/android/twrp/out/target/product/CPH1609/ 2>/dev/null || echo "No CPH1609 dir"
+        echo ""
+        echo "=== out/target/product/CPH1609/obj ==="
+        ls -la ~/android/twrp/out/target/product/CPH1609/obj/ 2>/dev/null || echo "No obj dir"
+
     - name: Check Build Result
       if: always()
       run: |
@@ -118,15 +127,7 @@ jobs:
           mkdir -p ${{ github.workspace }}/output
           cp out/target/product/CPH1609/recovery.img ${{ github.workspace }}/output/twrp_CPH1609.img
         else
-          echo "BUILD FAILED!"
-          echo "=== Last 300 lines of build.log ==="
-          tail -300 build.log 2>/dev/null || echo "No build.log"
-          echo ""
-          echo "=== out directory ==="
-          ls -la out/target/product/ 2>/dev/null || echo "No out/target/product"
-          echo ""
-          echo "=== out/target/product/CPH1609 ==="
-          ls -la out/target/product/CPH1609/ 2>/dev/null || echo "No CPH1609 dir"
+          echo "BUILD FAILED - no recovery.img"
           exit 1
         fi
         
