@@ -78,18 +78,36 @@ jobs:
         cd ~/android/twrp/device/oppo/CPH1609
         sed -i 's/SELINUX_IGNORE_NEVERALLOWS := true/SELINUX_IGNORE_NEVERALLOWS := false/g' BoardConfig.mk 2>/dev/null || true
         
-    - name: Build TWRP
+    - name: Build - Source envsetup
       run: |
-        set -ex
+        cd ~/android/twrp
+        export PATH=$JAVA_HOME/bin:$PATH
+        export LC_ALL=C
+        java -version 2>&1
+        echo "Sourcing envsetup.sh..."
+        source build/envsetup.sh
+        echo "envsetup.sh sourced OK"
+        
+    - name: Build - Lunch
+      run: |
+        cd ~/android/twrp
+        export PATH=$JAVA_HOME/bin:$PATH
+        export LC_ALL=C
+        source build/envsetup.sh 2>&1
+        echo "Running lunch omni_CPH1609-eng..."
+        lunch omni_CPH1609-eng 2>&1
+        echo "lunch OK"
+        
+    - name: Build - Make recoveryimage
+      run: |
         cd ~/android/twrp
         export PATH=$JAVA_HOME/bin:$PATH
         export LC_ALL=C
         export USE_CCACHE=1
         export CCACHE_DIR=~/.ccache
-        java -version
-        
-        source build/envsetup.sh
-        lunch omni_CPH1609-eng
+        source build/envsetup.sh 2>&1
+        lunch omni_CPH1609-eng 2>&1
+        echo "Starting make..."
         make recoveryimage -j$(nproc) 2>&1 | tee build.log
         
     - name: Check Build Result
